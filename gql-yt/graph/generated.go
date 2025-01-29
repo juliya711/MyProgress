@@ -51,6 +51,18 @@ type ComplexityRoot struct {
 		DeleteJobID func(childComplexity int) int
 	}
 
+	DeviceDiscovered struct {
+		Hostname          func(childComplexity int) int
+		IPAddresses       func(childComplexity int) int
+		ProductIdentifier func(childComplexity int) int
+		SerialNumber      func(childComplexity int) int
+		Vendor            func(childComplexity int) int
+	}
+
+	DevicesDiscoveredResponse struct {
+		DevicesDiscoveredSuccessfully func(childComplexity int) int
+	}
+
 	JobListing struct {
 		Company     func(childComplexity int) int
 		Description func(childComplexity int) int
@@ -66,8 +78,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Job  func(childComplexity int, id string) int
-		Jobs func(childComplexity int) int
+		ExportDevicesDiscovered func(childComplexity int, input model.ExportDevicesDiscoveredInput) int
+		Job                     func(childComplexity int, id string) int
+		Jobs                    func(childComplexity int) int
 	}
 }
 
@@ -79,6 +92,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Jobs(ctx context.Context) ([]*model.JobListing, error)
 	Job(ctx context.Context, id string) (*model.JobListing, error)
+	ExportDevicesDiscovered(ctx context.Context, input model.ExportDevicesDiscoveredInput) (*model.DevicesDiscoveredResponse, error)
 }
 
 type executableSchema struct {
@@ -106,6 +120,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DeleteJobResponse.DeleteJobID(childComplexity), true
+
+	case "DeviceDiscovered.hostname":
+		if e.complexity.DeviceDiscovered.Hostname == nil {
+			break
+		}
+
+		return e.complexity.DeviceDiscovered.Hostname(childComplexity), true
+
+	case "DeviceDiscovered.ip_addresses":
+		if e.complexity.DeviceDiscovered.IPAddresses == nil {
+			break
+		}
+
+		return e.complexity.DeviceDiscovered.IPAddresses(childComplexity), true
+
+	case "DeviceDiscovered.product_identifier":
+		if e.complexity.DeviceDiscovered.ProductIdentifier == nil {
+			break
+		}
+
+		return e.complexity.DeviceDiscovered.ProductIdentifier(childComplexity), true
+
+	case "DeviceDiscovered.serial_number":
+		if e.complexity.DeviceDiscovered.SerialNumber == nil {
+			break
+		}
+
+		return e.complexity.DeviceDiscovered.SerialNumber(childComplexity), true
+
+	case "DeviceDiscovered.vendor":
+		if e.complexity.DeviceDiscovered.Vendor == nil {
+			break
+		}
+
+		return e.complexity.DeviceDiscovered.Vendor(childComplexity), true
+
+	case "DevicesDiscoveredResponse.devicesDiscoveredSuccessfully":
+		if e.complexity.DevicesDiscoveredResponse.DevicesDiscoveredSuccessfully == nil {
+			break
+		}
+
+		return e.complexity.DevicesDiscoveredResponse.DevicesDiscoveredSuccessfully(childComplexity), true
 
 	case "JobListing.company":
 		if e.complexity.JobListing.Company == nil {
@@ -178,6 +234,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateJobListing(childComplexity, args["id"].(string), args["input"].(model.UpdateJobListingInput)), true
 
+	case "Query.exportDevicesDiscovered":
+		if e.complexity.Query.ExportDevicesDiscovered == nil {
+			break
+		}
+
+		args, err := ec.field_Query_exportDevicesDiscovered_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ExportDevicesDiscovered(childComplexity, args["input"].(model.ExportDevicesDiscoveredInput)), true
+
 	case "Query.job":
 		if e.complexity.Query.Job == nil {
 			break
@@ -206,6 +274,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateJobListingInput,
+		ec.unmarshalInputExportDevicesDiscoveredInput,
 		ec.unmarshalInputUpdateJobListingInput,
 	)
 	first := true
@@ -433,6 +502,29 @@ func (ec *executionContext) field_Query___type_argsName(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Query_exportDevicesDiscovered_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Query_exportDevicesDiscovered_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_exportDevicesDiscovered_argsInput(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (model.ExportDevicesDiscoveredInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNExportDevicesDiscoveredInput2githubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐExportDevicesDiscoveredInput(ctx, tmp)
+	}
+
+	var zeroVal model.ExportDevicesDiscoveredInput
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Query_job_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -549,6 +641,267 @@ func (ec *executionContext) fieldContext_DeleteJobResponse_deleteJobId(_ context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeviceDiscovered_product_identifier(ctx context.Context, field graphql.CollectedField, obj *model.DeviceDiscovered) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeviceDiscovered_product_identifier(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductIdentifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeviceDiscovered_product_identifier(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeviceDiscovered",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeviceDiscovered_hostname(ctx context.Context, field graphql.CollectedField, obj *model.DeviceDiscovered) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeviceDiscovered_hostname(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Hostname, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeviceDiscovered_hostname(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeviceDiscovered",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeviceDiscovered_vendor(ctx context.Context, field graphql.CollectedField, obj *model.DeviceDiscovered) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeviceDiscovered_vendor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Vendor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeviceDiscovered_vendor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeviceDiscovered",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeviceDiscovered_serial_number(ctx context.Context, field graphql.CollectedField, obj *model.DeviceDiscovered) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeviceDiscovered_serial_number(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SerialNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeviceDiscovered_serial_number(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeviceDiscovered",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeviceDiscovered_ip_addresses(ctx context.Context, field graphql.CollectedField, obj *model.DeviceDiscovered) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeviceDiscovered_ip_addresses(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IPAddresses, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeviceDiscovered_ip_addresses(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeviceDiscovered",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DevicesDiscoveredResponse_devicesDiscoveredSuccessfully(ctx context.Context, field graphql.CollectedField, obj *model.DevicesDiscoveredResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DevicesDiscoveredResponse_devicesDiscoveredSuccessfully(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DevicesDiscoveredSuccessfully, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.DeviceDiscovered)
+	fc.Result = res
+	return ec.marshalNDeviceDiscovered2ᚕᚖgithubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐDeviceDiscoveredᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DevicesDiscoveredResponse_devicesDiscoveredSuccessfully(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DevicesDiscoveredResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "product_identifier":
+				return ec.fieldContext_DeviceDiscovered_product_identifier(ctx, field)
+			case "hostname":
+				return ec.fieldContext_DeviceDiscovered_hostname(ctx, field)
+			case "vendor":
+				return ec.fieldContext_DeviceDiscovered_vendor(ctx, field)
+			case "serial_number":
+				return ec.fieldContext_DeviceDiscovered_serial_number(ctx, field)
+			case "ip_addresses":
+				return ec.fieldContext_DeviceDiscovered_ip_addresses(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeviceDiscovered", field.Name)
 		},
 	}
 	return fc, nil
@@ -1084,6 +1437,65 @@ func (ec *executionContext) fieldContext_Query_job(ctx context.Context, field gr
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_job_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_exportDevicesDiscovered(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_exportDevicesDiscovered(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ExportDevicesDiscovered(rctx, fc.Args["input"].(model.ExportDevicesDiscoveredInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DevicesDiscoveredResponse)
+	fc.Result = res
+	return ec.marshalNDevicesDiscoveredResponse2ᚖgithubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐDevicesDiscoveredResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_exportDevicesDiscovered(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "devicesDiscoveredSuccessfully":
+				return ec.fieldContext_DevicesDiscoveredResponse_devicesDiscoveredSuccessfully(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DevicesDiscoveredResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_exportDevicesDiscovered_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3040,6 +3452,40 @@ func (ec *executionContext) unmarshalInputCreateJobListingInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputExportDevicesDiscoveredInput(ctx context.Context, obj interface{}) (model.ExportDevicesDiscoveredInput, error) {
+	var it model.ExportDevicesDiscoveredInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"company_id", "assessment_id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "company_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("company_id"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CompanyID = data
+		case "assessment_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assessment_id"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AssessmentID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateJobListingInput(ctx context.Context, obj interface{}) (model.UpdateJobListingInput, error) {
 	var it model.UpdateJobListingInput
 	asMap := map[string]interface{}{}
@@ -3102,6 +3548,89 @@ func (ec *executionContext) _DeleteJobResponse(ctx context.Context, sel ast.Sele
 			out.Values[i] = graphql.MarshalString("DeleteJobResponse")
 		case "deleteJobId":
 			out.Values[i] = ec._DeleteJobResponse_deleteJobId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var deviceDiscoveredImplementors = []string{"DeviceDiscovered"}
+
+func (ec *executionContext) _DeviceDiscovered(ctx context.Context, sel ast.SelectionSet, obj *model.DeviceDiscovered) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deviceDiscoveredImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeviceDiscovered")
+		case "product_identifier":
+			out.Values[i] = ec._DeviceDiscovered_product_identifier(ctx, field, obj)
+		case "hostname":
+			out.Values[i] = ec._DeviceDiscovered_hostname(ctx, field, obj)
+		case "vendor":
+			out.Values[i] = ec._DeviceDiscovered_vendor(ctx, field, obj)
+		case "serial_number":
+			out.Values[i] = ec._DeviceDiscovered_serial_number(ctx, field, obj)
+		case "ip_addresses":
+			out.Values[i] = ec._DeviceDiscovered_ip_addresses(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var devicesDiscoveredResponseImplementors = []string{"DevicesDiscoveredResponse"}
+
+func (ec *executionContext) _DevicesDiscoveredResponse(ctx context.Context, sel ast.SelectionSet, obj *model.DevicesDiscoveredResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, devicesDiscoveredResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DevicesDiscoveredResponse")
+		case "devicesDiscoveredSuccessfully":
+			out.Values[i] = ec._DevicesDiscoveredResponse_devicesDiscoveredSuccessfully(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -3301,6 +3830,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_job(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "exportDevicesDiscovered":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_exportDevicesDiscovered(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -3702,6 +4253,79 @@ func (ec *executionContext) marshalNDeleteJobResponse2ᚖgithubᚗcomᚋjuliya71
 		return graphql.Null
 	}
 	return ec._DeleteJobResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDeviceDiscovered2ᚕᚖgithubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐDeviceDiscoveredᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.DeviceDiscovered) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDeviceDiscovered2ᚖgithubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐDeviceDiscovered(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDeviceDiscovered2ᚖgithubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐDeviceDiscovered(ctx context.Context, sel ast.SelectionSet, v *model.DeviceDiscovered) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DeviceDiscovered(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDevicesDiscoveredResponse2githubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐDevicesDiscoveredResponse(ctx context.Context, sel ast.SelectionSet, v model.DevicesDiscoveredResponse) graphql.Marshaler {
+	return ec._DevicesDiscoveredResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDevicesDiscoveredResponse2ᚖgithubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐDevicesDiscoveredResponse(ctx context.Context, sel ast.SelectionSet, v *model.DevicesDiscoveredResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DevicesDiscoveredResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNExportDevicesDiscoveredInput2githubᚗcomᚋjuliya711ᚋgqlᚑytᚋgraphᚋmodelᚐExportDevicesDiscoveredInput(ctx context.Context, v interface{}) (model.ExportDevicesDiscoveredInput, error) {
+	res, err := ec.unmarshalInputExportDevicesDiscoveredInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {

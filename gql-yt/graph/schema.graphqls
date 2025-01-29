@@ -9,7 +9,8 @@ type JobListing {
 type Query {
   jobs: [JobListing!]!
   job(id: ID!): JobListing!
-  exportDevicesDiscovered(input: ExportDevicesDiscoveredInput!): DevicesDiscoveredResponse
+  exportDevicesDiscovered(input: ExportDevicesDiscoveredInput!): DevicesDiscoveredResponse!
+
 }
 
 type Mutation {
@@ -36,30 +37,18 @@ type DeleteJobResponse {
   deleteJobId: String!
 }
 
+
 input ExportDevicesDiscoveredInput {
-    companyID: String!
-    assessmentID: String!
+    company_id: String!
+    assessment_id: String!
 }
 
 type DeviceDiscovered {
-    productIdentifier: String
+    product_identifier: String
     hostname: String
-    vendorCd: String
-    department: String
-    replacementProduct: String
-    contractedStatus: String
-    country: String
-    locations: String
-    serialNumber: String
-    ipAddress: String
-    endOfSale: String
-    endOfSupport: String
-    productFamily: String
-    productCategory: String
-    softwareType: String
-    softwareVersion: String
-    moduleSerialNumber: String
-    type: String
+    vendor: String
+    serial_number: String
+    ip_addresses: String
 }
 
 type DevicesDiscoveredResponse {

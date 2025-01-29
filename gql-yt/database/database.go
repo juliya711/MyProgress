@@ -136,39 +136,108 @@ func (db *DB) DeleteJobListing(jobId string) *model.DeleteJobResponse {
 }
 
 // GetDiscoveredDevices fetches devices for the given company_id from the assets collection.
-func (db *DB) GetDiscoveredDevices(companyID string) ([]*model.DeviceDiscovered, error) {
-	// Access the assets collection
-	assetsCollection := db.client.Database("ATNA").Collection("assets")
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+func FetchDiscoveredDevices(companyID, assessmentID string) ([]map[string]interface{}, error) {
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://Juliya:jp12345@cluster0.gmcyl.mongodb.net/?retryWrites=true&w=majority"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Query filter
-	filter := bson.M{"company_id": companyID}
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(ctx)
 
-	// Find matching documents
-	cursor, err := assetsCollection.Find(ctx, filter)
+	collection := client.Database("ATNA").Collection(`assets`)
+
+	// Aggregation pipeline
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$addFields", Value: bson.D{
+			{Key: "ip_addresses", Value: bson.D{
+				{Key: "$arrayElemAt", Value: bson.A{"$ip_addresses", 0}},
+			}},
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "software"},
+			{Key: "let", Value: bson.D{
+				{Key: "d_company_id", Value: "$company_id"},
+				{Key: "d_assessment_id", Value: "$assessment_id"},
+				{Key: "d_serialNumber", Value: "$serial_number"},
+			}},
+			{Key: "pipeline", Value: bson.A{
+				bson.D{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{
+					{Key: "$and", Value: bson.A{
+						bson.D{{Key: "$eq", Value: bson.A{"$company_id", "$$d_company_id"}}},
+						bson.D{{Key: "$eq", Value: bson.A{"$assessment_id", "$$d_assessment_id"}}},
+						bson.D{{Key: "$eq", Value: bson.A{"$device_serial_number", "$$d_serialNumber"}}},
+					}},
+				}}}}},
+			}},
+			{Key: "as", Value: "softwareLookup"},
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$softwareLookup"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "module"},
+			{Key: "localField", Value: "g_module_id.id"},
+			{Key: "foreignField", Value: "module_id"},
+			{Key: "as", Value: "moduleLookup"},
+		}}},
+		bson.D{{Key: "$addFields", Value: bson.D{
+			{Key: "moduleLookup", Value: bson.D{
+				{Key: "$arrayElemAt", Value: bson.A{"$moduleLookup", 0}},
+			}},
+		}}},
+		bson.D{{Key: "$match", Value: bson.D{
+			{Key: "moduleLookup.type", Value: bson.D{{Key: "$ne", Value: "PORT"}}},
+		}}},
+		bson.D{{Key: "$project", Value: bson.D{
+			{Key: "product_identifier", Value: 1},
+			{Key: "hostname", Value: bson.D{{Key: "$toLower", Value: "$hostname"}}},
+			{Key: "vendor_cd", Value: 1},
+			{Key: "department", Value: "$ntt_itsm_department"},
+			{Key: "replacementProduct", Value: "$migration_pid"},
+			{Key: "contractedStatus", Value: "$ntt_contracted_status"},
+			{Key: "country", Value: "$ntt_itsm_country"},
+			{Key: "locations", Value: "$ntt_itsm_location"},
+			{Key: "serialNumber", Value: "$serial_number"},
+			{Key: "IP_Address", Value: "$ip_addresses"},
+			{Key: "end_of_sale", Value: bson.D{
+				{Key: "$dateToString", Value: bson.D{
+					{Key: "format", Value: "%Y-%m-%d"},
+					{Key: "date", Value: "$end_of_sale"},
+				}},
+			}},
+			{Key: "end_of_support", Value: bson.D{
+				{Key: "$dateToString", Value: bson.D{
+					{Key: "format", Value: "%Y-%m-%d"},
+					{Key: "date", Value: "$last_day_of_support"},
+				}},
+			}},
+			{Key: "product_family", Value: 1},
+			{Key: "product_category", Value: 1},
+			{Key: "software_type", Value: "$softwareLookup.os_name"},
+			{Key: "software_version", Value: "$softwareLookup.os_version"},
+			{Key: "module_serial_number", Value: "$moduleLookup.serial_number"},
+			{Key: "type", Value: 1},
+		}}},
+	}
+	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
 
-	// Prepare the result slice
-	var devices []*model.DeviceDiscovered
-	for cursor.Next(ctx) {
-		var device model.DeviceDiscovered
-		if err := cursor.Decode(&device); err != nil {
-			return nil, err
-		}
-		devices = append(devices, &device) // Append pointer to device
-	}
-
-	if err := cursor.Err(); err != nil {
+	var results []map[string]interface{}
+	if err = cursor.All(ctx, &results); err != nil {
 		return nil, err
 	}
 
-	return devices, nil
+	return results, nil
 }
-
 func (db *DB) Client() *mongo.Client {
 	return db.client
 }

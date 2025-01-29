@@ -13,6 +13,23 @@ type DeleteJobResponse struct {
 	DeleteJobID string `json:"deleteJobId"`
 }
 
+type DeviceDiscovered struct {
+	ProductIdentifier *string `json:"product_identifier,omitempty"`
+	Hostname          *string `json:"hostname,omitempty"`
+	Vendor            *string `json:"vendor,omitempty"`
+	SerialNumber      *string `json:"serial_number,omitempty"`
+	IPAddresses       *string `json:"ip_addresses,omitempty"`
+}
+
+type DevicesDiscoveredResponse struct {
+	DevicesDiscoveredSuccessfully []*DeviceDiscovered `json:"devicesDiscoveredSuccessfully"`
+}
+
+type ExportDevicesDiscoveredInput struct {
+	CompanyID    string `json:"company_id"`
+	AssessmentID string `json:"assessment_id"`
+}
+
 type JobListing struct {
 	ID          string `json:"_id"`
 	Title       string `json:"title"`
@@ -31,37 +48,4 @@ type UpdateJobListingInput struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	URL         string `json:"url"`
-}
-
-// ExportDevicesDiscoveredInput represents the input arguments for the query
-type ExportDevicesDiscoveredInput struct {
-	CompanyID    string `json:"companyID"`
-	AssessmentID string `json:"assessmentID"`
-}
-
-// DeviceDiscovered represents a single discovered device
-type DeviceDiscovered struct {
-	ProductIdentifier   string `json:"productIdentifier"`
-	Hostname            string `json:"hostname"`
-	VendorCd            string `json:"vendorCd"`
-	Department          string `json:"department"`
-	ReplacementProduct  string `json:"replacementProduct"`
-	ContractedStatus    string `json:"contractedStatus"`
-	Country             string `json:"country"`
-	Locations           string `json:"locations"`
-	SerialNumber        string `json:"serialNumber"`
-	IPAddress           string `json:"ipAddress"`
-	EndOfSale           string `json:"endOfSale"`
-	EndOfSupport        string `json:"endOfSupport"`
-	ProductFamily       string `json:"productFamily"`
-	ProductCategory     string `json:"productCategory"`
-	SoftwareType        string `json:"softwareType"`
-	SoftwareVersion     string `json:"softwareVersion"`
-	ModuleSerialNumber  string `json:"moduleSerialNumber"`
-	Type                string `json:"type"`
-}
-
-// DevicesDiscoveredResponse represents the response containing discovered devices
-type DevicesDiscoveredResponse struct {
-	DevicesDiscoveredSuccessfully []*DeviceDiscovered `json:"devicesDiscoveredSuccessfully"`
 }
