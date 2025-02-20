@@ -12,4 +12,5 @@ df.to_excel(output, index=False, engine='openpyxl')
 
 output.seek(0)
 
+# Send output to NiFi
 sys.stdout.buffer.write(output.read())
